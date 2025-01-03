@@ -21,7 +21,16 @@ jobs:
       with:
         version: v3.12.0 # Specify Helm version
 
-    # Step 3: Package the Helm chart
+    # Step 3: Extract Chart Version
+    - name: Extract Helm Chart Version
+      id: chart_version
+      run: |
+        CHART_NAME=$(yq '.name' ./helm/postgres/Chart.yaml)
+        CHART_VERSION=$(yq '.version' ./helm/postgres/Chart.yaml)
+        echo "chart_name=${CHART_NAME}" >> $GITHUB_ENV
+        echo "chart_version=${CHART_VERSION}" >> $GITHUB_ENV
+
+    # Step 4: Package the Helm chart
     - name: Package Helm Chart
       run: |
         mkdir -p packaged
@@ -29,16 +38,26 @@ jobs:
       env:
         HELM_EXPERIMENTAL_OCI: 1
 
-    # Step 4: Generate Helm repository index
+    # Step 5: Generate Helm repository index
     - name: Generate Helm Repository Index
       run: |
         helm repo index ./packaged --url https://skydevsorg.github.io/postgres-operator/
 
-    # Step 5: Deploy to GitHub Pages
+    # Step 6: Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./packaged
-        destination_dir: .
+
+    # Step 7: Create Git Tag
+    - name: Create Git Tag
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git tag "${chart_name}-${chart_version}"
+        git push origin "${chart_name}-${chart_version}"
+      env:
+        chart_name: ${{ env.chart_name }}
+        chart_version: ${{ env.chart_version }}
 
