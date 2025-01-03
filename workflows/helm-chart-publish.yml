@@ -1,0 +1,44 @@
+name: Publish Helm Chart to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Replace with the branch you want to trigger this workflow
+
+jobs:
+  publish:
+    name: Publish Helm Chart
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Helm
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: v3.12.0 # Specify Helm version
+
+    # Step 3: Package the Helm chart
+    - name: Package Helm Chart
+      run: |
+        mkdir -p packaged
+        helm package ./helm/postgres --destination ./packaged
+      env:
+        HELM_EXPERIMENTAL_OCI: 1
+
+    # Step 4: Generate Helm repository index
+    - name: Generate Helm Repository Index
+      run: |
+        helm repo index ./packaged --url https://skydevsorg.github.io/postgres-operator/
+
+    # Step 5: Deploy to GitHub Pages
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./packaged
+        destination_dir: .
+
