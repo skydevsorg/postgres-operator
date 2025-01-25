@@ -2,13 +2,13 @@ apiVersion: v1
 entries:
   postgrescluster:
   - apiVersion: v2
-    appVersion: 5.7.2
-    created: "2025-01-03T11:15:01.717696984Z"
+    appVersion: 5.7.3
+    created: "2025-01-25T17:04:42.435000428Z"
     description: A Helm chart for Kubernetes
-    digest: ae7b28e1369e30ae536ac00d3ae5ec638f629df697ac5931e7dd844f487b1554
+    digest: 64a720e4ec96f5d76f1762a172df1a745ad65a3f05a2fd475129351afd01e289
     name: postgrescluster
     type: application
     urls:
-    - https://skydevsorg.github.io/postgres-operator/postgrescluster-5.7.2.tgz
-    version: 5.7.2
-generated: "2025-01-03T11:15:01.717164753Z"
+    - https://skydevsorg.github.io/postgres-operator/postgrescluster-5.7.3.tgz
+    version: 5.7.3
+generated: "2025-01-25T17:04:42.434472862Z"
