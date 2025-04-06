@@ -88,8 +88,24 @@ resources:
 #   - name: PG_DEBUG
 #     value: "true"
 
-# tolerations allows you to define pod tolerations for the operator pods.
-# tolerations: []
+#tolerations:
+#  - effect: NoSchedule
+#    key: "region"
+#    operator: Equal
+#    value: "eu-west-1"
 
-# affinity allows you to define pod affinity and anti-affinity rules for the operator pods.
-# affinity: {}
+#topologySpreadConstraints:
+#  - maxSkew: 1
+#    topologyKey: kubernetes.io/hostname
+#    whenUnsatisfiable: DoNotSchedule
+#    labelSelector:
+#      matchLabels:
+#        app.kubernetes.io/name: pgo
+
+#affinity:
+#  podAntiAffinity:
+#    requiredDuringSchedulingIgnoredDuringExecution:
+#      - topologyKey: kubernetes.io/hostname
+#        labelSelector:
+#          matchLabels:
+#            app.kubernetes.io/name: pgo
