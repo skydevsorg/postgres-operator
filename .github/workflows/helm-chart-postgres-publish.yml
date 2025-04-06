@@ -93,7 +93,7 @@ jobs:
     # Step 7: Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
-      if: steps.tag_pgo.outputs.chart_name_pgo != 0 || steps.tag_pgc.outputs.chart_name_pgc != 0
+      if: steps.tag_pgo.outputs.chart_name_pgo != '0' || steps.tag_pgc.outputs.chart_name_pgc != '0'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./packaged
