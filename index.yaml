@@ -3,24 +3,24 @@ entries:
   pgo:
   - apiVersion: v2
     appVersion: 5.8.0
-    created: "2025-04-06T10:31:29.852761871Z"
+    created: "2025-04-06T13:41:32.59927472Z"
     description: Installer for PGO, the open source Postgres Operator from Crunchy
       Data
-    digest: ecb6e49d4935108614ac5db58c4cdeb0e6e04e8d6e2cbfb60afbe89418f53193
+    digest: 0c3841a42fe2723f78efee18f2753c18151451f014eaa1c8877413499ae86130
     name: pgo
     type: application
     urls:
-    - https://skydevsorg.github.io/postgres-operator/pgo-5.8.0.tgz
-    version: 5.8.0
+    - https://skydevsorg.github.io/postgres-operator/pgo-5.8.1.tgz
+    version: 5.8.1
   postgrescluster:
   - apiVersion: v2
     appVersion: 5.7.4
-    created: "2025-04-06T10:31:29.853126479Z"
+    created: "2025-04-06T13:41:32.599656171Z"
     description: A Helm chart for Kubernetes
-    digest: c2a398e823574d998c2b3f710597ccf333b682dca3abe9de7a87654904e4f6d8
+    digest: 252aaba68d6c8093cab28d485459b24cd4bda3bb3278def69cbaa9b1c0687b40
     name: postgrescluster
     type: application
     urls:
     - https://skydevsorg.github.io/postgres-operator/postgrescluster-5.7.4.tgz
     version: 5.7.4
-generated: "2025-04-06T10:31:29.847801052Z"
+generated: "2025-04-06T13:41:32.594275739Z"
