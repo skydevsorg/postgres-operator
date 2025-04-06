@@ -59,13 +59,13 @@ jobs:
         TAG="${chart_name_pgo}-${chart_version_pgo}"
         if [ $(git tag -l "${TAG}") ]; then
           echo "Tag ${TAG} exists"
-          echo "::set-output name=chart_name_pgo_tag::0"
+          echo "chart_name_pgo_tag=0" >> $GITHUB_OUTPUT
         else
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "${chart_name_pgo}-${chart_version_pgo}"
           git push origin "${chart_name_pgo}-${chart_version_pgo}"
-          echo "::set-output name=chart_name_pgo_tag::1"
+          echo "chart_name_pgo_tag=1" >> $GITHUB_OUTPUT
         fi
       env:
         chart_name_pgo: ${{ env.chart_name_pgo }}
@@ -78,13 +78,13 @@ jobs:
         TAG="${chart_name_pgc}-${chart_version_pgc}"
         if [ $(git tag -l "${TAG}") ]; then
           echo "Tag ${TAG} exists"
-          echo "::set-output name=chart_name_pgc_tag::0"
+          echo "chart_name_pgc_tag=0" >> $GITHUB_OUTPUT
         else
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "${chart_name_pgc}-${chart_version_pgc}"
           git push origin "${chart_name_pgc}-${chart_version_pgc}"
-          echo "::set-output name=chart_name_pgc_tag::1"
+          echo "chart_name_pgc_tag=1" >> $GITHUB_OUTPUT
         fi
       env:
         chart_name_pgc: ${{ env.chart_name_pgc }}
