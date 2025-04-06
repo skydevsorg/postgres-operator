@@ -74,7 +74,7 @@ jobs:
       id: tag_pgc
       run: |
         TAG="${chart_name_pgc}-${chart_version_pgc}"
-       if [ $(git tag -l "${TAG}") ]; then
+        if [ $(git tag -l "${TAG}") ]; then
           echo "Tag ${TAG} exists"
           echo "::set-output name=chart_name_pgc_tag::0"
         else
