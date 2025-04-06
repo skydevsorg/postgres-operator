@@ -52,15 +52,18 @@ jobs:
 
     # Step 6: Create Git Tag for PGC
     - name: Create Git Tag
+      id: tag_pgo
       run: |
         TAG="${chart_name_pgo}-${chart_version_pgo}"
-        if git show-ref --tags --verify --quiet "refs/tags/${TAG}"; then
+        if [ $(git tag -l "${TAG}") ]; then
           echo "Tag ${TAG} exists"
+          echo "::set-output name=chart_name_pgo_tag::0"
         else
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "${chart_name_pgo}-${chart_version_pgo}"
           git push origin "${chart_name_pgo}-${chart_version_pgo}"
+          echo "::set-output name=chart_name_pgo_tag::1"
         fi
       env:
         chart_name_pgo: ${{ env.chart_name_pgo }}
@@ -68,15 +71,18 @@ jobs:
 
       # Step 6: Create Git Tag for PGO
     - name: Create Git Tag
+      id: tag_pgc
       run: |
         TAG="${chart_name_pgc}-${chart_version_pgc}"
-        if git show-ref --tags --verify --quiet "refs/tags/${TAG}"; then
+       if [ $(git tag -l "${TAG}") ]; then
           echo "Tag ${TAG} exists"
+          echo "::set-output name=chart_name_pgc_tag::0"
         else
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "${chart_name_pgc}-${chart_version_pgc}"
           git push origin "${chart_name_pgc}-${chart_version_pgc}"
+          echo "::set-output name=chart_name_pgc_tag::1"
         fi
       env:
         chart_name_pgc: ${{ env.chart_name_pgc }}
@@ -85,6 +91,7 @@ jobs:
     # Step 7: Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
+      if: steps.tag_pgo.outputs.chart_name_pgo != 0 || steps.tag_pgc.outputs.chart_name_pgc != 0
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./packaged
