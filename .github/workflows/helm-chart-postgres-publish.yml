@@ -69,7 +69,7 @@ jobs:
         chart_name_pgo: ${{ env.chart_name_pgo }}
         chart_version_pgo: ${{ env.chart_version_pgo }}
 
-      # Step 6: Create Git Tag for PGO
+    # Step 6: Create Git Tag for PGO
     - name: Create Git Tag
       id: tag_pgc
       run: |
