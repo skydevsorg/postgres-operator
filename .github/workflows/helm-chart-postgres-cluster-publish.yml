@@ -9,6 +9,8 @@ jobs:
   publish:
     name: Publish Helm Chart
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-postgrescluster
 
     steps:
     # Step 1: Checkout the repository
@@ -43,14 +45,7 @@ jobs:
       run: |
         helm repo index ./packaged --url https://skydevsorg.github.io/postgres-operator/
 
-    # Step 6: Deploy to GitHub Pages
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./packaged
-
-    # Step 7: Create Git Tag
+    # Step 6: Create Git Tag
     - name: Create Git Tag
       run: |
         git config user.name "github-actions[bot]"
@@ -60,4 +55,11 @@ jobs:
       env:
         chart_name: ${{ env.chart_name }}
         chart_version: ${{ env.chart_version }}
+
+    # Step 7: Deploy to GitHub Pages
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./packaged
 
