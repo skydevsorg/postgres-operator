@@ -1,4 +1,4 @@
-name: Publish Helm Chart to GitHub Pages
+name: Publish Postgres Operator Helm Chart to GitHub Pages
 
 on:
   push:
@@ -25,8 +25,8 @@ jobs:
     - name: Extract Helm Chart Version
       id: chart_version
       run: |
-        CHART_NAME=$(yq '.name' ./helm/postgres/Chart.yaml)
-        CHART_VERSION=$(yq '.version' ./helm/postgres/Chart.yaml)
+        CHART_NAME=$(yq '.name' ./helm/install/Chart.yaml)
+        CHART_VERSION=$(yq '.version' ./helm/install/Chart.yaml)
         echo "chart_name=${CHART_NAME}" >> $GITHUB_ENV
         echo "chart_version=${CHART_VERSION}" >> $GITHUB_ENV
 
