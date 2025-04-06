@@ -63,8 +63,8 @@ jobs:
           git push origin "${chart_name_pgo}-${chart_version_pgo}"
         fi
       env:
-        chart_name: ${{ env.chart_name_pgo }}
-        chart_version: ${{ env.chart_version_pgo }}
+        chart_name_pgo: ${{ env.chart_name_pgo }}
+        chart_version_pgo: ${{ env.chart_version_pgo }}
 
       # Step 6: Create Git Tag for PGO
     - name: Create Git Tag
@@ -79,8 +79,8 @@ jobs:
           git push origin "${chart_name_pgc}-${chart_version_pgc}"
         fi
       env:
-        chart_name: ${{ env.chart_name_pgc }}
-        chart_version: ${{ env.chart_version_pgc }}
+        chart_name_pgc: ${{ env.chart_name_pgc }}
+        chart_version_pgc: ${{ env.chart_version_pgc }}
 
     # Step 7: Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
