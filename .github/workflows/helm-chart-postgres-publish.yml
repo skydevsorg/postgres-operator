@@ -1,0 +1,91 @@
+name: Publish Postgres Operator and Cluster Helm Chart to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Replace with the branch you want to trigger this workflow
+
+jobs:
+  publish:
+    name: Publish Helm Chart
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Helm
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: v3.12.0 # Specify Helm version
+
+    # Step 3: Extract Chart Version
+    - name: Extract Helm Chart Version
+      id: chart_version
+      run: |
+        CHART_NAME_PGO=$(yq '.name' ./helm/install/Chart.yaml)
+        CHART_VERSION_PGO=$(yq '.version' ./helm/install/Chart.yaml)
+        CHART_NAME_PGC=$(yq '.name' ./helm/postgres/Chart.yaml)
+        CHART_VERSION_PGC=$(yq '.version' ./helm/postgres/Chart.yaml)
+        echo "chart_name_pgo=${CHART_NAME_PGO}" >> $GITHUB_ENV
+        echo "chart_version_pgo=${CHART_VERSION_PGO}" >> $GITHUB_ENV
+        echo "chart_name_pgc=${CHART_NAME_PGC}" >> $GITHUB_ENV
+        echo "chart_version_pgc=${CHART_VERSION_PGC}" >> $GITHUB_ENV
+
+    # Step 4: Package the Helm chart
+    - name: Package Helm Chart
+      run: |
+        mkdir -p packaged
+        helm package ./helm/postgres --destination ./packaged
+        helm package ./helm/install --destination ./packaged
+      env:
+        HELM_EXPERIMENTAL_OCI: 1
+
+    # Step 5: Generate Helm repository index
+    - name: Generate Helm Repository Index
+      run: |
+        helm repo index ./packaged --url https://skydevsorg.github.io/postgres-operator/
+
+    # Step 6: Create Git Tag for PGC
+    - name: Create Git Tag
+      run: |
+        TAG="${chart_name_pgo}-${chart_version_pgo}"
+        if git show-ref --tags --verify --quiet "refs/tags/${TAG}"; then
+          echo "Tag ${TAG} exists"
+        else
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${chart_name_pgo}-${chart_version_pgo}"
+          git push origin "${chart_name_pgo}-${chart_version_pgo}"
+        fi
+      env:
+        chart_name: ${{ env.chart_name_pgo }}
+        chart_version: ${{ env.chart_version_pgo }}
+
+      # Step 6: Create Git Tag for PGO
+    - name: Create Git Tag
+      run: |
+        TAG="${chart_name_pgc}-${chart_version_pgc}"
+        if git show-ref --tags --verify --quiet "refs/tags/${TAG}"; then
+          echo "Tag ${TAG} exists"
+        else
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${chart_name_pgc}-${chart_version_pgc}"
+          git push origin "${chart_name_pgc}-${chart_version_pgc}"
+        fi
+      env:
+        chart_name: ${{ env.chart_name_pgc }}
+        chart_version: ${{ env.chart_version_pgc }}
+
+    # Step 7: Deploy to GitHub Pages
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./packaged
+
