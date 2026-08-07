@@ -51,110 +51,40 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      # Step 5: Three-way merge upstream changes into helm/install
-      #
-      # helm/install-upstream/ is a committed snapshot of the last raw upstream
-      # pull. It acts as the merge BASE so git knows what *they* changed vs.
-      # what *you* changed in helm/install/:
-      #
-      #   BASE  = helm/install-upstream/<file>  (last upstream we pulled)
-      #   OURS  = helm/install/<file>           (your customisations)
-      #   THEIRS= /tmp/upstream/pgo/<file>      (new upstream version)
-      #
-      # git merge-file edits OURS in-place:
-      #   - Lines only you touched          → kept as-is
-      #   - Lines only upstream changed     → applied cleanly
-      #   - Lines both sides changed        → conflict markers left in file
-      #
-      # On the very first run (no helm/install-upstream/ yet) we bootstrap by
-      # treating the current helm/install/ as the base, so only net-new upstream
-      # changes are shown in the PR.
-      - name: Three-way merge upstream into helm/install
+      # Step 5: Copy the pulled chart into helm/install and detect changes
+      - name: Copy upstream chart into helm/install
         if: steps.check_branch.outputs.exists == 'false'
-        id: merge_chart
+        id: copy_chart
         run: |
-          UPSTREAM_NEW="/tmp/upstream/pgo"
-          UPSTREAM_BASE="./helm/install-upstream"
-          INSTALL="./helm/install"
-          CONFLICTS=false
-
-          # Bootstrap: if no base snapshot exists yet, seed it from the current
-          # helm/install/ so only genuine upstream deltas appear in the first PR.
-          if [ ! -d "${UPSTREAM_BASE}" ]; then
-            echo "No upstream base found – bootstrapping from current helm/install"
-            cp -r "${INSTALL}/." "${UPSTREAM_BASE}/"
-            git add "${UPSTREAM_BASE}"
-          fi
-
-          # 3-way merge every file that exists in the new upstream release
-          while IFS= read -r -d '' upstream_file; do
-            rel="${upstream_file#${UPSTREAM_NEW}/}"
-            install_file="${INSTALL}/${rel}"
-            base_file="${UPSTREAM_BASE}/${rel}"
-
-            mkdir -p "$(dirname "${install_file}")"
-
-            if [ ! -f "${base_file}" ]; then
-              # Brand-new file added upstream – no base, take theirs directly
-              echo "NEW (upstream): ${rel}"
-              cp "${upstream_file}" "${install_file}"
-            elif [ ! -f "${install_file}" ]; then
-              # We deliberately removed this file locally – do not restore it
-              echo "SKIPPED (locally removed): ${rel}"
-            else
-              # All three sides exist – proper 3-way merge
-              if ! git merge-file "${install_file}" "${base_file}" "${upstream_file}"; then
-                echo "CONFLICT: ${rel}"
-                CONFLICTS=true
-              fi
-            fi
-          done < <(find "${UPSTREAM_NEW}" -type f -print0)
-
-          echo "conflicts=${CONFLICTS}" >> $GITHUB_OUTPUT
-
-          if git diff --quiet "${INSTALL}"; then
+          cp -r /tmp/upstream/pgo/. ./helm/install/
+          if git diff --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
-            echo "No effective changes after merge."
+            echo "No changes detected – upstream matches current helm/install."
           else
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
 
-      # Step 6: Update the upstream reference snapshot to the new version
-      - name: Update upstream reference snapshot
-        if: >-
-          steps.check_branch.outputs.exists == 'false' &&
-          steps.merge_chart.outputs.changed == 'true'
-        run: |
-          cp -r /tmp/upstream/pgo/. ./helm/install-upstream/
-
-      # Step 7: Commit and push to a new branch
+      # Step 6: Commit and push to a new branch
       - name: Commit and push sync branch
         if: >-
           steps.check_branch.outputs.exists == 'false' &&
-          steps.merge_chart.outputs.changed == 'true'
+          steps.copy_chart.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "${{ steps.check_branch.outputs.branch }}"
-          git add helm/install/ helm/install-upstream/
+          git add helm/install/
           git commit -m "chore: sync upstream PGO helm chart v${{ steps.helm_pull.outputs.chart_version }}"
           git push origin "${{ steps.check_branch.outputs.branch }}"
 
-      # Step 8: Open a Pull Request for review
+      # Step 7: Open a Pull Request for review
       - name: Create Pull Request
         if: >-
           steps.check_branch.outputs.exists == 'false' &&
-          steps.merge_chart.outputs.changed == 'true'
+          steps.copy_chart.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          CONFLICTS="${{ steps.merge_chart.outputs.conflicts }}"
-          if [ "${CONFLICTS}" = "true" ]; then
-            CONFLICT_NOTE="⚠️ **Merge conflicts were detected.** Files with conflict markers (\`<<<<<<<\`) are committed as-is – resolve them before merging this PR."
-          else
-            CONFLICT_NOTE="✅ All changes merged cleanly – no conflicts with your local customisations."
-          fi
-
           gh pr create \
             --title "chore: sync upstream PGO helm chart v${{ steps.helm_pull.outputs.chart_version }}" \
             --body "## Upstream PGO Helm Chart Sync
@@ -164,21 +94,10 @@ jobs:
           **Upstream version:** \`${{ steps.helm_pull.outputs.chart_version }}\`
           **Source:** \`oci://registry.developers.crunchydata.com/crunchydata/pgo\`
 
-          ${CONFLICT_NOTE}
-
-          ### How changes were applied (3-way merge)
-          | Situation | Result |
-          |-----------|--------|
-          | Only upstream changed a line | Applied automatically |
-          | Only you changed a line | Kept as-is |
-          | Both sides changed the same line | Conflict markers left in file |
-          | New file added upstream | Added to \`helm/install/\` |
-          | File you removed locally | Left removed (not restored) |
-
           ### What to review
-          - Resolve any conflict markers in \`helm/install/\`
-          - Check \`helm/install-upstream/\` diff to see the full raw upstream delta
-          - Verify your custom values/templates still behave as expected
+          - Compare changes in \`helm/install/\` against your custom configuration
+          - Keep your custom values/templates where they differ intentionally
+          - Merge what you want to adopt from the upstream release
 
           > Triggered by: ${{ github.event_name }}" \
             --base main \
