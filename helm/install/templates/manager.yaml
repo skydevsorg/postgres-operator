@@ -27,7 +27,7 @@ spec:
           - name: PGO_INSTALLER
             value: helm
           - name: PGO_INSTALLER_ORIGIN
-            value: examples-repo
+            value: developer-registry-oci
           - name: PGO_CONTROLLER_LEASE_NAME
             value: {{ .Values.pgoControllerLeaseName }}
         {{- if .Values.envOverride }}
@@ -64,15 +64,11 @@ spec:
             port: 8081
           initialDelaySeconds: 5
           periodSeconds: 10
-      {{- if .Values.affinity }}
-      affinity:
-        {{- toYaml .Values.affinity | nindent 8 }}
-      {{- end }}
       {{- if .Values.tolerations }}
       tolerations:
         {{- toYaml .Values.tolerations | nindent 8 }}
       {{- end }}
-      {{- if .Values.topologySpreadConstraints }}
-      topologySpreadConstraints:
-        {{- toYaml .Values.topologySpreadConstraints | nindent 8 }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
       {{- end }}
