@@ -27,6 +27,7 @@ jobs:
             https://github.com/CrunchyData/postgres-operator-examples.git \
             /tmp/upstream-examples
           cd /tmp/upstream-examples
+          git sparse-checkout init --no-cone
           git sparse-checkout set helm/postgres LICENSE.md README.md
 
       # Step 3: Resolve the upstream commit SHA (used as the branch suffix)
